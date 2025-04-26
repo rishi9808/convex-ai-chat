@@ -2,7 +2,6 @@ import { ConvexAiChat } from "@/aiChat";
 import { Link } from "@/components/typography/link";
 import { Button } from "@/components/ui/button";
 import { WebsiteForm } from "@/components/WebsiteForm";
-import { PdfForm } from "@/components/PdfForm";
 import { EmbedCodeGenerator } from "@/components/EmbedCodeGenerator";
 
 function App() {
@@ -14,7 +13,7 @@ function App() {
       
       <WebsiteForm />
       
-      <PdfForm />
+     
       
       <div className="border-t border-gray-200 pt-6">
         <p className="mb-4">Ask questions about the website content you've added:</p>
