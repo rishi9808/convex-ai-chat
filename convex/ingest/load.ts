@@ -3,7 +3,7 @@ import { v } from "convex/values";
 import { RecursiveCharacterTextSplitter } from "langchain/text_splitter";
 import { map } from "modern-async";
 import { internal } from "../_generated/api";
-import { internalAction, internalMutation } from "../_generated/server";
+import { internalAction, internalMutation, action } from "../_generated/server";
 import { Doc } from "../_generated/dataModel";
 
 export const scrapeSite = internalAction({
@@ -104,9 +104,43 @@ export const eraseStaleDocumentsAndChunks = internalMutation({
   },
 });
 
+export const scrapeWebsite = action({
+  args: {
+    url: v.string(),
+  },
+  handler: async (ctx, { url }) => {
+    try {
+      // First, check if URL is valid
+      new URL(url);
+      
+      // Fetch and process the single page
+      await ctx.scheduler.runAfter(0, internal.ingest.load.fetchSingle, { url });
+      
+      // Start the embedding process for any new chunks
+      await ctx.scheduler.runAfter(1000, internal.ingest.embed.embedAll, {});
+      
+      return { success: true, message: "Website scraping initiated" };
+    } catch (error) {
+      return { 
+        success: false, 
+        message: error instanceof Error ? error.message : "Invalid URL or scraping failed" 
+      };
+    }
+  },
+});
+
 function parsePage(text: string) {
   const $ = load(text);
-  return parse($, $(".markdown"))
+  // Try to get content from common content containers, or fall back to body
+  const content = $("main").length 
+    ? $("main") 
+    : $("article").length 
+      ? $("article") 
+      : $(".content, .markdown").length 
+        ? $(".content, .markdown") 
+        : $("body");
+  
+  return parse($, content)
     .replace(/(?:\n\s+){3,}/g, "\n\n")
     .trim();
 }

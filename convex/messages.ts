@@ -15,6 +15,16 @@ export const list = query({
   },
 });
 
+export const listDocuments = query({
+  args: {},
+  handler: async (ctx) => {
+    return await ctx.db
+      .query("documents")
+      .order("desc")
+      .collect();
+  },
+});
+
 export const send = mutation({
   args: {
     message: v.string(),
